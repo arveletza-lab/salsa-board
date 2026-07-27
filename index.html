@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salsa Musicality Board</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="title">Salsa musicality board</p>
+  <p class="subtitle">Conteo On1 · 2 compases · toca para escuchar cada instrumento en su lugar</p>
+
+  <div class="panel">
+    <div class="controls">
+      <button class="playbtn" id="playBtn" aria-label="Reproducir">
+        <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+
+      <div class="ctrl-group">
+        <span class="ctrl-label">Tempo</span>
+        <div class="ctrl-row">
+          <input type="range" id="bpmSlider" min="120" max="230" value="182">
+          <span class="bpm-val" id="bpmVal">182</span>
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <span class="ctrl-label">Clave</span>
+        <div class="toggle" id="claveToggle">
+          <button data-val="3-2" class="active">3-2</button>
+          <button data-val="2-3">2-3</button>
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <span class="ctrl-label">Volumen</span>
+        <input type="range" id="volSlider" min="0" max="1" step="0.01" value="0.8">
+      </div>
+    </div>
+
+    <div class="grid-scroll">
+      <div class="pulsebar" id="pulseBar"></div>
+      <div class="grid" id="gridRoot"></div>
+    </div>
+
+    <div class="legend">
+      <span><span class="sw" style="background:var(--coral)"></span>paso (1-2-3, 5-6-7)</span>
+      <span><span class="sw" style="background:var(--amber)"></span>golpe de percusión</span>
+      <span><span class="sw" style="background:var(--teal)"></span>bajo / piano</span>
+      <span>usá el interruptor de cada fila para agregar instrumentos de a uno</span>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

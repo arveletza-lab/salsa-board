@@ -1,0 +1,26 @@
+# Respaldos de audio: NO van al repo (al sitio solo va audio/ con los wav finales)
+audio/originales/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Temporales / editores
+*.tmp
+*.temp
+*.log
+*~
+*.swp
+.vscode/
+.idea/
+
+# Assets no usados por el sitio (la app no los carga)
+audio/conteo.mp3
+audio/guiro.wav
