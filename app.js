@@ -11,7 +11,8 @@ const ROWS = [
   { id:'campana', label:'Campana', color:'amber',
     steps:()=>[0,4,8,12] },
   { id:'conga',   label:'Conga', color:'amber',
-    steps:()=>[2,10,6,7,14,15], accentSet:new Set([2,10]) },
+    steps:()=>[2,10,6,7,14,15], accentSet:new Set([2,10]),
+    syllables:{ 2:'PA', 6:'KU', 7:'KU', 10:'PA', 14:'KU', 15:'KU' } }, // PA=slap, KU=open
   { id:'bajo',    label:'Bajo', color:'teal',
     steps:()=>[3,6,11,14] },
   { id:'piano',   label:'Piano', color:'teal',
@@ -107,7 +108,17 @@ function buildGrid(){
       cell.dataset.step=i;
       if(i===0||i===8) cell.classList.add('bar-start');
 
-      if(stepSet.has(i)){
+      if(row.syllables){
+        // Fila con sílabas onomatopéyicas: texto que aparece al sonar (sin dot)
+        if(row.syllables[i]){
+          const s = document.createElement('div');
+          s.className='syl';
+          s.dataset.row=row.id;
+          s.dataset.step=i;
+          s.textContent=row.syllables[i];
+          cell.appendChild(s);
+        }
+      } else if(stepSet.has(i)){
         const d = document.createElement('div');
         d.className='dot';
         if(row.longSet && !row.longSet.has(i)) d.classList.add('short');
@@ -126,6 +137,19 @@ function buildGrid(){
       el.appendChild(cell);
     }
     gridRoot.appendChild(el);
+
+    // Numeración por fila (1 & 2 & ...) para filas con sílabas
+    if(row.syllables){
+      const rc = document.createElement('div');
+      rc.className='row-count';
+      rc.appendChild(document.createElement('div'));  // columna del label (vacía)
+      for(let i=0;i<STEPS;i++){
+        const c = document.createElement('div');
+        c.textContent = (i%2===0) ? String(i/2+1) : '&';
+        rc.appendChild(c);
+      }
+      gridRoot.appendChild(rc);
+    }
   });
 }
 buildGrid();
@@ -319,8 +343,13 @@ function animate(){
     ROWS.forEach(row=>{
       if(!on[row.id]) return;
       if(!new Set(row.steps()).has(step)) return;
-      const dot = document.querySelector(`.cell[data-step="${step}"] .dot[data-row="${row.id}"]`);
-      if(dot){ dot.classList.remove('flash'); void dot.offsetWidth; dot.classList.add('flash'); }
+      if(row.syllables){
+        const syl = document.querySelector(`.syl[data-row="${row.id}"][data-step="${step}"]`);
+        if(syl){ syl.classList.remove('syl-fire'); void syl.offsetWidth; syl.classList.add('syl-fire'); }
+      } else {
+        const dot = document.querySelector(`.cell[data-step="${step}"] .dot[data-row="${row.id}"]`);
+        if(dot){ dot.classList.remove('flash'); void dot.offsetWidth; dot.classList.add('flash'); }
+      }
     });
     const beatNow = Math.floor(step/2)%8;
     document.querySelectorAll('.pulse-dot.active').forEach(p=>p.classList.remove('active'));

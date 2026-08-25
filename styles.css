@@ -151,6 +151,33 @@ input[type=range]::-webkit-slider-thumb{
   0%{transform:scale(2.1);opacity:1;filter:brightness(1.6);}
   100%{transform:scale(1);opacity:0.85;}
 }
+
+/* --- Sílabas onomatopéyicas (visualize & vocalize) --- */
+.syl{
+  position:relative;z-index:1;
+  font-weight:700;
+  font-size:15px;
+  letter-spacing:0.02em;
+  color:var(--coral);      /* sílabas en mayúscula (PA, KU) */
+  opacity:0;               /* invisibles en reposo, aparecen al sonar */
+  pointer-events:none;
+}
+.syl-fire{ animation:sylFire 0.9s ease-out; }
+@keyframes sylFire{
+  0%  {opacity:0;transform:scale(0.9);}
+  15% {opacity:1;transform:scale(1.25);}   /* aparece agrandándose, rápido */
+  30% {opacity:1;transform:scale(1.1);}
+  100%{opacity:0;transform:scale(1.0);}    /* fade out más lento, invisible */
+}
+.row-count{
+  display:grid;grid-template-columns:130px repeat(16,1fr);
+  margin:2px 0 6px;
+}
+.row-count > div{
+  text-align:center;font-size:10px;color:var(--text-faint);
+  font-variant-numeric:tabular-nums;
+}
+.row-count + .row{border-top:1px solid var(--grid-line);}
 .playhead{
   position:absolute;top:0;bottom:0;width:2px;
   background:var(--teal);
