@@ -1,25 +1,33 @@
 /* ===== Salsa Musicality Board ===== */
 
 const STEPS = 16;
+// Mapas de sílabas de la clave según dirección. PA=golpe (mayúscula coral), ku=canto suave (minúscula gris).
+const CLAVE_SYL = {
+  '2-3': { 2:'PA', 4:'PA', 6:'ku', 7:'ku', 8:'PA', 11:'PA', 14:'PA' },
+  '3-2': { 0:'PA', 3:'PA', 6:'PA', 10:'PA', 12:'PA', 14:'ku', 15:'ku' },
+};
 const ROWS = [
   { id:'conteo',  label:'Conteo On1', color:'coral',
     steps:()=>[0,2,4,8,10,12], accent:[0,8], pause:[6,14] },
   { id:'click',   label:'Click', color:'coral',
     steps:()=>[0,2,4,8,10,12], accent:[0,8], pause:[6,14] },
   { id:'clave',   label:'Clave', color:'amber',
-    steps:()=> claveDir==='3-2' ? [0,3,6,10,12] : [2,4,8,11,14] },
+    steps:()=> claveDir==='3-2' ? [0,3,6,10,12] : [2,4,8,11,14],
+    syllables:()=> CLAVE_SYL[claveDir] },
   { id:'campana', label:'Campana', color:'amber',
     steps:()=>[0,4,8,12] },
-  { id:'conga',   label:'Conga', color:'amber',
+  { id:'conga',   label:'Conga', color:'coral',
     steps:()=>[2,10,6,7,14,15], accentSet:new Set([2,10]),
     syllables:{ 2:'PA', 3:'co', 4:'chi', 5:'ka', 6:'KU', 7:'KU', 10:'PA', 11:'co', 12:'chi', 13:'ka', 14:'KU', 15:'KU' } }, // PA=slap KU=open (suenan); co/chi/ka solo visuales
-  { id:'bajo',    label:'Bajo', color:'teal',
-    steps:()=>[3,6,11,14] },
+  { id:'bajo',    label:'Bajo', color:'green',
+    steps:()=>[3,6,11,14],
+    syllables:{ 3:'KONG', 6:'KONG', 11:'KONG', 14:'KONG' } }, // KONG en verde; sin sílabas suaves
   { id:'piano',   label:'Piano', color:'teal',
     steps:()=>[0,3,6,8,11,14] },
   { id:'guiro',   label:'Güiro', color:'teal',
-    steps:()=>Array.from({length:16},(_,i)=>i),
-    longSet:new Set([0,2,4,6,8,10,12,14]), tick:true },
+    steps:()=>[0,2,3,4,6,7,8,10,11,12],           // suena solo donde hay sílaba (resto en silencio)
+    longSet:new Set([0,4,8,12]),                   // CHA = raspado largo/fuerte; 2,3,6,7,10,11 (chi/ki) = corto/suave
+    syllables:{ 0:'CHA', 2:'chi', 3:'ki', 4:'CHA', 6:'chi', 7:'ki', 8:'CHA', 10:'chi', 11:'ki', 12:'CHA' } },
 ];
 
 let claveDir = '3-2';
@@ -57,6 +65,9 @@ function buildPulseBar(){
 }
 buildPulseBar();
 
+// Resuelve el mapa de sílabas de una fila: objeto fijo (conga) o función según estado (clave/claveDir)
+function sylMap(row){ return typeof row.syllables==='function' ? row.syllables() : row.syllables; }
+
 function buildGrid(){
   gridRoot.innerHTML='';
 
@@ -84,6 +95,7 @@ function buildGrid(){
     const el = document.createElement('div');
     el.className='row'+(on[row.id]?' on':'');
     el.id='row-'+row.id;
+    el.style.setProperty('--row-color', `var(--${row.color})`);  // color del instrumento (nombre + sílabas fuertes)
 
     const label = document.createElement('div');
     label.className='row-label';
@@ -102,21 +114,22 @@ function buildGrid(){
     el.appendChild(label);
 
     const stepSet = new Set(row.steps());
+    const syls = row.syllables ? sylMap(row) : null;
     for(let i=0;i<STEPS;i++){
       const cell = document.createElement('div');
       cell.className='cell';
       cell.dataset.step=i;
       if(i===0||i===8) cell.classList.add('bar-start');
 
-      if(row.syllables){
+      if(syls){
         // Fila con sílabas onomatopéyicas: texto que aparece al sonar (sin dot)
-        if(row.syllables[i]){
+        if(syls[i]){
           const s = document.createElement('div');
           s.className='syl';
-          if(row.syllables[i] !== row.syllables[i].toUpperCase()) s.classList.add('syl-soft'); // co/chi/ka
+          if(syls[i] !== syls[i].toUpperCase()) s.classList.add('syl-soft'); // minúsculas (ku, co...)
           s.dataset.row=row.id;
           s.dataset.step=i;
-          s.textContent=row.syllables[i];
+          s.textContent=syls[i];
           cell.appendChild(s);
         }
       } else if(stepSet.has(i)){
@@ -140,7 +153,7 @@ function buildGrid(){
     gridRoot.appendChild(el);
 
     // Numeración por fila (1 & 2 & ...) para filas con sílabas
-    if(row.syllables){
+    if(syls){
       const rc = document.createElement('div');
       rc.className='row-count';
       rc.dataset.row=row.id;
@@ -275,11 +288,11 @@ function playConga(t, open){
   }
 }
 function playGuiro(t, long){
-  // short scrape a bit quieter than the long, for the call-and-response feel
-  if(playSample(long?'guiro_long':'guiro_short', t, long?1.0:0.7)) return;
+  // CHA (long) fuerte 1.0 vs chi/ki (short) suave 0.45: contraste marcado fuerte/suave
+  if(playSample(long?'guiro_long':'guiro_short', t, long?1.0:0.45)) return;
   const src = ctx.createBufferSource(); src.buffer=noiseBuf;
   const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3800; bp.Q.value=1.2;
-  const g = envGain(t, long?0.18:0.12, 0.001, long?0.05:0.03);
+  const g = envGain(t, long?0.18:0.09, 0.001, long?0.05:0.03);
   src.connect(bp).connect(g).connect(master); src.start(t); src.stop(t+0.06);
 }
 
@@ -348,8 +361,9 @@ function animate(){
     ROWS.forEach(row=>{
       if(!on[row.id]) return;
       if(row.syllables){
-        // El disparo visual va por posición de sílaba (las 12), independiente del audio
-        if(!row.syllables[step]) return;
+        // El disparo visual va por posición de sílaba, independiente del audio
+        const syls = sylMap(row);
+        if(!syls[step]) return;
         const syl = document.querySelector(`.syl[data-row="${row.id}"][data-step="${step}"]`);
         if(syl){ syl.classList.remove('syl-fire'); void syl.offsetWidth; syl.classList.add('syl-fire'); }
         // Realce sincronizado del dígito de conteo de esa fila

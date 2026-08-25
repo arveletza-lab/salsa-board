@@ -10,6 +10,7 @@
   --amber-dim:#6E4E1D;
   --coral:#E0654A;
   --coral-dim:#6E2E1D;
+  --green:#3FB65C;
   --text:#E8EDEC;
   --text-dim:#7C9390;
   --text-faint:#4A5D5A;
@@ -113,6 +114,7 @@ input[type=range]::-webkit-slider-thumb{
 }
 .row-icon{width:18px;height:18px;flex-shrink:0;color:var(--text-dim);}
 .row-name{white-space:nowrap;}
+.row.on .row-name{color:var(--row-color, var(--text));}  /* fila activa: nombre con color del instrumento */
 .switch{
   position:relative;width:30px;height:17px;border-radius:9px;
   background:var(--grid-line-strong);cursor:pointer;flex-shrink:0;
@@ -158,7 +160,7 @@ input[type=range]::-webkit-slider-thumb{
   font-weight:700;
   font-size:15px;
   letter-spacing:0.02em;
-  color:var(--coral);      /* mayúsculas fuertes (PA, KU) */
+  color:var(--row-color, var(--coral));   /* mayúsculas fuertes: color del instrumento (row.color) */
   opacity:0;               /* invisibles en reposo, aparecen al sonar */
   pointer-events:none;
 }
@@ -184,15 +186,14 @@ input[type=range]::-webkit-slider-thumb{
   font-variant-numeric:tabular-nums;
 }
 .row-count span{
-  display:inline-block;
-  padding:1px 4px;border-radius:7px;line-height:1;
+  display:inline-block;line-height:1;   /* inline-block solo para permitir el scale */
 }
 .count-fire{ animation:countFire 1.6s ease-out; }
-@keyframes countFire{        /* dígito se agranda + borde blanco, en sync con la sílaba */
-  0%  {transform:scale(1);    box-shadow:0 0 0 0 rgba(255,255,255,0); color:var(--text-faint);}
-  8%  {transform:scale(1.40); box-shadow:0 0 0 1.5px #fff;            color:var(--text);}
-  22% {transform:scale(1.25); box-shadow:0 0 0 1.5px #fff;            color:var(--text);}
-  100%{transform:scale(1);    box-shadow:0 0 0 0 rgba(255,255,255,0); color:var(--text-faint);}
+@keyframes countFire{        /* SOLO el carácter: se agranda y se aclara a blanco. Sin recuadro/fondo/borde */
+  0%  {transform:scale(1);    color:var(--text-faint);}
+  8%  {transform:scale(1.40); color:#fff;}
+  22% {transform:scale(1.25); color:#fff;}
+  100%{transform:scale(1);    color:var(--text-faint);}
 }
 .row-count + .row{border-top:1px solid var(--grid-line);}
 .playhead{
