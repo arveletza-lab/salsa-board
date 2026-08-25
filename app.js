@@ -12,7 +12,7 @@ const ROWS = [
     steps:()=>[0,4,8,12] },
   { id:'conga',   label:'Conga', color:'amber',
     steps:()=>[2,10,6,7,14,15], accentSet:new Set([2,10]),
-    syllables:{ 2:'PA', 6:'KU', 7:'KU', 10:'PA', 14:'KU', 15:'KU' } }, // PA=slap, KU=open
+    syllables:{ 2:'PA', 3:'co', 4:'chi', 5:'ka', 6:'KU', 7:'KU', 10:'PA', 11:'co', 12:'chi', 13:'ka', 14:'KU', 15:'KU' } }, // PA=slap KU=open (suenan); co/chi/ka solo visuales
   { id:'bajo',    label:'Bajo', color:'teal',
     steps:()=>[3,6,11,14] },
   { id:'piano',   label:'Piano', color:'teal',
@@ -113,6 +113,7 @@ function buildGrid(){
         if(row.syllables[i]){
           const s = document.createElement('div');
           s.className='syl';
+          if(row.syllables[i] !== row.syllables[i].toUpperCase()) s.classList.add('syl-soft'); // co/chi/ka
           s.dataset.row=row.id;
           s.dataset.step=i;
           s.textContent=row.syllables[i];
@@ -142,10 +143,14 @@ function buildGrid(){
     if(row.syllables){
       const rc = document.createElement('div');
       rc.className='row-count';
+      rc.dataset.row=row.id;
       rc.appendChild(document.createElement('div'));  // columna del label (vacía)
       for(let i=0;i<STEPS;i++){
         const c = document.createElement('div');
-        c.textContent = (i%2===0) ? String(i/2+1) : '&';
+        c.dataset.step=i;
+        const sp = document.createElement('span');
+        sp.textContent = (i%2===0) ? String(i/2+1) : '&';
+        c.appendChild(sp);
         rc.appendChild(c);
       }
       gridRoot.appendChild(rc);
@@ -342,11 +347,17 @@ function animate(){
     const {step} = queue.shift();
     ROWS.forEach(row=>{
       if(!on[row.id]) return;
-      if(!new Set(row.steps()).has(step)) return;
       if(row.syllables){
+        // El disparo visual va por posición de sílaba (las 12), independiente del audio
+        if(!row.syllables[step]) return;
         const syl = document.querySelector(`.syl[data-row="${row.id}"][data-step="${step}"]`);
         if(syl){ syl.classList.remove('syl-fire'); void syl.offsetWidth; syl.classList.add('syl-fire'); }
+        // Realce sincronizado del dígito de conteo de esa fila
+        const cell = document.querySelector(`.row-count[data-row="${row.id}"] [data-step="${step}"]`);
+        const cnt = cell && cell.firstElementChild;
+        if(cnt){ cnt.classList.remove('count-fire'); void cnt.offsetWidth; cnt.classList.add('count-fire'); }
       } else {
+        if(!new Set(row.steps()).has(step)) return;
         const dot = document.querySelector(`.cell[data-step="${step}"] .dot[data-row="${row.id}"]`);
         if(dot){ dot.classList.remove('flash'); void dot.offsetWidth; dot.classList.add('flash'); }
       }
