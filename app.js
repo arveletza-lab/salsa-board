@@ -9,29 +9,32 @@ const CLAVE_SYL = {
 const ROWS = [
   { id:'conteo',  label:'Conteo On1', color:'coral',
     steps:()=>[0,2,4,8,10,12], accent:[0,8], pause:[6,14] },
-  { id:'click',   label:'Click', color:'coral',
-    steps:()=>[0,2,4,8,10,12], accent:[0,8], pause:[6,14] },
   { id:'clave',   label:'Clave', color:'amber',
     steps:()=> claveDir==='3-2' ? [0,3,6,10,12] : [2,4,8,11,14],
     syllables:()=> CLAVE_SYL[claveDir] },
-  { id:'campana', label:'Campana', color:'amber',
-    steps:()=>[0,4,8,12] },
   { id:'conga',   label:'Conga', color:'coral',
     steps:()=>[2,10,6,7,14,15], accentSet:new Set([2,10]),
     syllables:{ 2:'PA', 3:'co', 4:'chi', 5:'ka', 6:'KU', 7:'KU', 10:'PA', 11:'co', 12:'chi', 13:'ka', 14:'KU', 15:'KU' } }, // PA=slap KU=open (suenan); co/chi/ka solo visuales
   { id:'bajo',    label:'Bajo', color:'green',
     steps:()=>[3,6,11,14],
     syllables:{ 3:'KONG', 6:'KONG', 11:'KONG', 14:'KONG' } }, // KONG en verde; sin sílabas suaves
-  { id:'piano',   label:'Piano', color:'teal',
-    steps:()=>[0,3,6,8,11,14] },
   { id:'guiro',   label:'Güiro', color:'teal',
     steps:()=>[0,2,3,4,6,7,8,10,11,12],           // suena solo donde hay sílaba (resto en silencio)
     longSet:new Set([0,4,8,12]),                   // CHA = raspado largo/fuerte; 2,3,6,7,10,11 (chi/ki) = corto/suave
     syllables:{ 0:'CHA', 2:'chi', 3:'ki', 4:'CHA', 6:'chi', 7:'ki', 8:'CHA', 10:'chi', 11:'ki', 12:'CHA' } },
+  { id:'campana', label:'Campana', color:'blue',
+    steps:()=>[0,4,8,12],
+    syllables:{ 0:'CHI', 2:'PA', 4:'CHI', 6:'ku', 7:'ku', 8:'CHI', 10:'ku', 11:'ku', 12:'CHI', 14:'ku', 15:'ku' },
+    syllableColors:{ 2:'amber' } },   // el PA del step 2 en dorado en vez del azul de la fila
+  // --- Ocultas: siguen en el código pero no se renderizan ni suenan (sacar hidden para reactivar) ---
+  { id:'click',   label:'Click', color:'coral', hidden:true,
+    steps:()=>[0,2,4,8,10,12], accent:[0,8], pause:[6,14] },
+  { id:'piano',   label:'Piano', color:'teal', hidden:true,
+    steps:()=>[0,3,6,8,11,14] },
 ];
 
 let claveDir = '3-2';
-let on = { conteo:true, click:false, clave:true, campana:false, conga:false, bajo:false, piano:false, guiro:false };
+let on = { conteo:false, click:false, clave:true, campana:false, conga:false, bajo:false, piano:false, guiro:false };
 const gridRoot = document.getElementById('gridRoot');
 const pulseBar = document.getElementById('pulseBar');
 
@@ -92,6 +95,7 @@ function buildGrid(){
   gridRoot.appendChild(nums);
 
   ROWS.forEach(row=>{
+    if(row.hidden) return;   // filas ocultas: no se renderizan
     const el = document.createElement('div');
     el.className='row'+(on[row.id]?' on':'');
     el.id='row-'+row.id;
@@ -127,6 +131,7 @@ function buildGrid(){
           const s = document.createElement('div');
           s.className='syl';
           if(syls[i] !== syls[i].toUpperCase()) s.classList.add('syl-soft'); // minúsculas (ku, co...)
+          if(row.syllableColors && row.syllableColors[i]) s.style.color = `var(--${row.syllableColors[i]})`; // color puntual por sílaba (sobreescribe el de la fila)
           s.dataset.row=row.id;
           s.dataset.step=i;
           s.textContent=syls[i];
@@ -328,6 +333,7 @@ function playClick(t, step){
 /* ---- Sequencer ---- */
 function scheduleStep(step, time){
   ROWS.forEach(row=>{
+    if(row.hidden) return;   // filas ocultas: no suenan
     if(!on[row.id]) return;
     const set = new Set(row.steps());
     if(!set.has(step)) return;
