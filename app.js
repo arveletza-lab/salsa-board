@@ -39,14 +39,14 @@ const gridRoot = document.getElementById('gridRoot');
 const pulseBar = document.getElementById('pulseBar');
 
 const ICONS = {
-  conteo: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 15V9a5 5 0 0 1 10 0v6"/><path d="M10 4v2"/></svg>',
-  click: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M6.5 3.5h7l2 13h-11z"/><path d="M10 16l2.5-8"/></svg>',
-  clave: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="8.5" width="12" height="3" rx="1.4" transform="rotate(-18 8 10)"/><rect x="6" y="8.5" width="12" height="3" rx="1.4" transform="rotate(18 12 10)"/></svg>',
-  campana: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 3h6l2 12H5z"/><path d="M6 15h8"/></svg>',
-  conga: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h8l-1 5-1 9H8L7 8z"/><path d="M6 3h8M6.6 8h6.8"/></svg>',
-  bajo: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 2v9"/><ellipse cx="9" cy="14" rx="4.5" ry="4"/><path d="M6.5 12.5c1 1 3.5 1 5 0"/></svg>',
-  piano: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="14" height="12" rx="1"/><path d="M6.5 4v8M10 4v8M13.5 4v8"/></svg>',
-  guiro: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><ellipse cx="10" cy="10" rx="7.5" ry="4.2" transform="rotate(-14 10 10)"/><path d="M5 8.5l9 3M4.7 10.8l9 3M5.5 6.3l9 3"/></svg>'
+  conteo: '🔢',
+  clave: '🥢',
+  conga: '🪘',
+  bajo: '🎸',
+  guiro: '🎶',
+  campana: '🔔',
+  click: '👆',   // oculto
+  piano: '🎹',   // oculto
 };
 
 /* ---- UI build ---- */
@@ -105,7 +105,7 @@ function buildGrid(){
     label.className='row-label';
     const icon = document.createElement('span');
     icon.className='row-icon';
-    icon.innerHTML = ICONS[row.id];
+    icon.textContent = ICONS[row.id];
     const name = document.createElement('span');
     name.className='row-name';
     name.textContent = row.label;

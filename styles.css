@@ -113,7 +113,12 @@ input[type=range]::-webkit-slider-thumb{
   font-size:13px;font-weight:600;color:var(--text);
   padding-right:10px;
 }
-.row-icon{width:18px;height:18px;flex-shrink:0;color:var(--text-dim);}
+.row-icon{
+  flex-shrink:0;
+  width:22px;
+  font-size:17px;line-height:1;
+  display:inline-flex;align-items:center;justify-content:center;
+}
 .row-name{white-space:nowrap;}
 .row.on .row-name{color:var(--row-color, var(--text));}  /* fila activa: nombre con color del instrumento */
 .switch{
@@ -127,7 +132,8 @@ input[type=range]::-webkit-slider-thumb{
 }
 .row.on .switch{background:var(--teal-dim);}
 .row.on .switch::after{transform:translateX(13px);background:var(--teal);}
-.row:not(.on) .row-icon,.row:not(.on) .row-name{color:var(--text-faint);}
+.row:not(.on) .row-name{color:var(--text-faint);}
+.row:not(.on) .row-icon{opacity:0.4;}   /* el emoji no cambia de color, solo se atenúa */
 .cell{
   position:relative;
   height:100%;
@@ -205,13 +211,6 @@ input[type=range]::-webkit-slider-thumb{
   z-index:2;
   left:130px;
 }
-.legend{
-  display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;padding-top:14px;
-  border-top:1px solid var(--grid-line);
-  font-size:11px;color:var(--text-dim);
-}
-.legend span{display:inline-flex;align-items:center;gap:6px;}
-.legend .sw{width:8px;height:8px;border-radius:50%;}
 .loading-note{
   font-size:11px;color:var(--text-faint);margin-top:10px;
 }
