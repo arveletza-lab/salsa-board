@@ -440,7 +440,7 @@ playBtn.onclick = async ()=>{
     current=0; nextTime=ctx.currentTime+0.05; queue=[];
     timerID = setInterval(scheduler, lookahead);
     requestAnimationFrame(animate);
-    playIcon.innerHTML='<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+    playIcon.innerHTML='<path d="M6 6h12v12H6z"/>';   // stop (cuadrado)
   } else {
     clearInterval(timerID);
     document.querySelectorAll('.pulse-dot').forEach(p=>p.classList.remove('active'));

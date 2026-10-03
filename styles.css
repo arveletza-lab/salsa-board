@@ -196,7 +196,7 @@ input[type=range]::-webkit-slider-thumb{
   font-size:15px;
   letter-spacing:0.02em;
   color:var(--row-color, var(--coral));   /* mayúsculas fuertes: color del instrumento (row.color) */
-  opacity:0;               /* invisibles en reposo, aparecen al sonar */
+  opacity:0.4;             /* visible fijo en reposo: se ve dónde cae cada sílaba */
   pointer-events:none;
 }
 .syl.syl-soft{             /* minúsculas suaves (co, chi, ka) */
@@ -204,12 +204,13 @@ input[type=range]::-webkit-slider-thumb{
   font-weight:400;
   font-size:12px;
 }
+.row:not(.on) .syl{opacity:0.15;}   /* fila apagada: sílabas apenas visibles */
 .syl-fire{ animation:sylFire 1.6s ease-out; }
 @keyframes sylFire{
-  0%  {opacity:0;transform:scale(0.9);}
-  8%  {opacity:1;transform:scale(1.25);}   /* aparición rápida */
-  20% {opacity:1;transform:scale(1.10);}   /* permanencia breve */
-  100%{opacity:0;transform:scale(1.0);}    /* fade out largo y lento */
+  0%  {opacity:0.4;transform:scale(1.0);}
+  8%  {opacity:1;  transform:scale(1.25);}   /* se ilumina fuerte y se agranda */
+  20% {opacity:1;  transform:scale(1.10);}
+  100%{opacity:0.4;transform:scale(1.0);}    /* vuelve al reposo visible */
 }
 .row-count{
   display:grid;grid-template-columns:168px repeat(16,1fr);
