@@ -195,22 +195,29 @@ input[type=range]::-webkit-slider-thumb{
   font-weight:700;
   font-size:15px;
   letter-spacing:0.02em;
-  color:var(--row-color, var(--coral));   /* mayúsculas fuertes: color del instrumento (row.color) */
-  opacity:0.4;             /* visible fijo en reposo: se ve dónde cae cada sílaba */
+  --syl-rest:#cdd6d4;                        /* reposo: gris bien clarito (no respeta el color encendido) */
+  --syl-lit:var(--row-color, var(--coral));  /* encendido: color del instrumento */
+  color:var(--syl-rest);
+  opacity:0.6;             /* reposo bien legible: se ve dónde cae cada sílaba */
   pointer-events:none;
 }
 .syl.syl-soft{             /* minúsculas suaves (co, chi, ka) */
-  color:var(--text-dim);
+  --syl-rest:#9aa9a6;      /* gris un poco más apagado */
+  --syl-lit:var(--text-dim);
   font-weight:400;
   font-size:12px;
 }
-.row:not(.on) .syl{opacity:0.15;}   /* fila apagada: sílabas apenas visibles */
+.row:not(.on) .syl{opacity:0.28;}   /* fila apagada: sílabas tenues pero visibles */
 .syl-fire{ animation:sylFire 1.6s ease-out; }
 @keyframes sylFire{
-  0%  {opacity:0.4;transform:scale(1.0);}
-  8%  {opacity:1;  transform:scale(1.25);}   /* se ilumina fuerte y se agranda */
-  20% {opacity:1;  transform:scale(1.10);}
-  100%{opacity:0.4;transform:scale(1.0);}    /* vuelve al reposo visible */
+  0%  {opacity:0.6; transform:scale(1.0);  color:var(--syl-rest);
+       text-shadow:.3px .3px 0 rgba(255,255,255,0),-.3px -.3px 0 rgba(255,255,255,0),.3px -.3px 0 rgba(255,255,255,0),-.3px .3px 0 rgba(255,255,255,0),0 0 1.5px rgba(255,255,255,0);}
+  8%  {opacity:1;   transform:scale(1.28); color:var(--syl-lit);
+       text-shadow:.3px .3px 0 #fff,-.3px -.3px 0 #fff,.3px -.3px 0 #fff,-.3px .3px 0 #fff,0 0 1.5px rgba(255,255,255,.55);}   /* contorno blanco fino: da volumen */
+  20% {opacity:1;   transform:scale(1.12); color:var(--syl-lit);
+       text-shadow:.3px .3px 0 #fff,-.3px -.3px 0 #fff,.3px -.3px 0 #fff,-.3px .3px 0 #fff,0 0 1.5px rgba(255,255,255,.55);}
+  100%{opacity:0.6; transform:scale(1.0);  color:var(--syl-rest);
+       text-shadow:.3px .3px 0 rgba(255,255,255,0),-.3px -.3px 0 rgba(255,255,255,0),.3px -.3px 0 rgba(255,255,255,0),-.3px .3px 0 rgba(255,255,255,0),0 0 1.5px rgba(255,255,255,0);}
 }
 .row-count{
   display:grid;grid-template-columns:168px repeat(16,1fr);
