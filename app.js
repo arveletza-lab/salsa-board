@@ -112,7 +112,16 @@ function buildGrid(){
     const sw = document.createElement('span');
     sw.className='switch';
     sw.onclick = ()=>{ on[row.id]=!on[row.id]; el.classList.toggle('on', on[row.id]); };
+    // Volumen del instrumento: +/- apilados en vertical (compacto), al lado del switch
+    const vol = document.createElement('div');
+    vol.className='vol-ctrl';
+    const volUp = document.createElement('button'); volUp.className='vol-btn'; volUp.textContent='+'; volUp.title='Subir volumen';
+    const volDn = document.createElement('button'); volDn.className='vol-btn'; volDn.textContent='−'; volDn.title='Bajar volumen';
+    volUp.onclick = ()=> setInsVol(row.id, insVol[row.id] + 0.1);
+    volDn.onclick = ()=> setInsVol(row.id, insVol[row.id] - 0.1);
+    vol.appendChild(volUp); vol.appendChild(volDn);
     label.appendChild(sw);
+    label.appendChild(vol);
     label.appendChild(icon);
     label.appendChild(name);
     el.appendChild(label);
@@ -188,12 +197,35 @@ document.getElementById('claveToggle').addEventListener('click', e=>{
 const bpmSlider = document.getElementById('bpmSlider');
 const bpmVal = document.getElementById('bpmVal');
 let bpm = parseInt(bpmSlider.value,10);
-bpmSlider.oninput = ()=>{ bpm = parseInt(bpmSlider.value,10); bpmVal.textContent = bpm; };
+function setBpm(v){
+  bpm = Math.min(+bpmSlider.max, Math.max(+bpmSlider.min, v));
+  bpmSlider.value = bpm;
+  bpmVal.textContent = bpm;
+}
+bpmSlider.oninput = ()=> setBpm(parseInt(bpmSlider.value,10));   // bolita
+document.getElementById('bpmDown').onclick = ()=> setBpm(bpm - 5);
+document.getElementById('bpmUp').onclick   = ()=> setBpm(bpm + 5);
 
 const volSlider = document.getElementById('volSlider');
+function setVol(v){
+  v = Math.min(1, Math.max(0, Math.round(v*100)/100));
+  volSlider.value = v;
+  if(master) master.gain.value = v;   // master existe recién tras iniciar el audio
+}
+volSlider.oninput = ()=> setVol(parseFloat(volSlider.value));   // bolita
+document.getElementById('volDown').onclick = ()=> setVol(parseFloat(volSlider.value) - 0.05);
+document.getElementById('volUp').onclick   = ()=> setVol(parseFloat(volSlider.value) + 0.05);
 
 /* ---- Audio ---- */
-let ctx, master, noiseBuf;
+let ctx, master, noiseBuf, insGain;
+// Volumen por instrumento (0..1); se aplica con un bus de ganancia propio por fila
+const insVol = { conteo:1, clave:1, campana:1, conga:1, bajo:1, guiro:1, click:1, piano:1 };
+function busFor(id){ return (insGain && insGain[id]) ? insGain[id] : master; }
+function setInsVol(id, v){
+  v = Math.min(1, Math.max(0, Math.round(v*10)/10));
+  insVol[id] = v;
+  if(insGain && insGain[id]) insGain[id].gain.value = v;
+}
 let playing=false, current=0, nextTime=0, timerID=null;
 const lookahead=25, scheduleAhead=0.1;
 let queue=[];
@@ -237,7 +269,9 @@ function initAudio(){
   master = ctx.createGain();
   master.gain.value = parseFloat(volSlider.value);
   master.connect(ctx.destination);
-  volSlider.oninput = ()=>{ master.gain.value = parseFloat(volSlider.value); };
+  // Un bus de ganancia por instrumento -> master (para volumen individual)
+  insGain = {};
+  ROWS.forEach(r=>{ const g = ctx.createGain(); g.gain.value = (insVol[r.id] ?? 1); g.connect(master); insGain[r.id] = g; });
   const len = ctx.sampleRate*0.3;
   noiseBuf = ctx.createBuffer(1,len,ctx.sampleRate);
   const d = noiseBuf.getChannelData(0);
@@ -245,12 +279,12 @@ function initAudio(){
   return loadSamples();
 }
 
-function playSample(id, t, gainVal=1){
+function playSample(id, t, gainVal=1, dest){
   const buf = buffers[id];
   if(!buf) return false;
   const src = ctx.createBufferSource(); src.buffer = buf;
   const g = ctx.createGain(); g.gain.value = gainVal;
-  src.connect(g).connect(master); src.start(t);
+  src.connect(g).connect(dest||master); src.start(t);
   return true;
 }
 
@@ -264,70 +298,77 @@ function envGain(time, peak, attack, decay){
 
 /* Percussion: try sample first, fall back to synth */
 function playClave(t){
-  if(playSample('clave',t)) return;
+  const bus = busFor('clave');
+  if(playSample('clave',t,1,bus)) return;
   const o = ctx.createOscillator(); o.type='square'; o.frequency.value=2400;
   const g = envGain(t,0.5,0.001,0.045);
-  o.connect(g).connect(master); o.start(t); o.stop(t+0.06);
+  o.connect(g).connect(bus); o.start(t); o.stop(t+0.06);
 }
 function playCampana(t){
-  if(playSample('campana',t)) return;
+  const bus = busFor('campana');
+  if(playSample('campana',t,1,bus)) return;
   [820,560].forEach((f,i)=>{
     const o = ctx.createOscillator(); o.type='square'; o.frequency.value=f;
     const g = envGain(t,0.35-i*0.08,0.001,0.14);
-    o.connect(g).connect(master); o.start(t); o.stop(t+0.2);
+    o.connect(g).connect(bus); o.start(t); o.stop(t+0.2);
   });
 }
 function playConga(t, open){
-  if(playSample(open?'conga_open':'conga_slap', t)) return;
+  const bus = busFor('conga');
+  if(playSample(open?'conga_open':'conga_slap', t, 1, bus)) return;
   if(open){
     const o = ctx.createOscillator(); o.type='triangle';
     o.frequency.setValueAtTime(210,t);
     o.frequency.exponentialRampToValueAtTime(150,t+0.28);
     const g = envGain(t,0.55,0.002,0.3);
-    o.connect(g).connect(master); o.start(t); o.stop(t+0.32);
+    o.connect(g).connect(bus); o.start(t); o.stop(t+0.32);
   } else {
     const src = ctx.createBufferSource(); src.buffer=noiseBuf;
     const bp = ctx.createBiquadFilter(); bp.type='highpass'; bp.frequency.value=1200;
     const g = envGain(t,0.5,0.001,0.07);
-    src.connect(bp).connect(g).connect(master); src.start(t); src.stop(t+0.09);
+    src.connect(bp).connect(g).connect(bus); src.start(t); src.stop(t+0.09);
   }
 }
 function playGuiro(t, long){
+  const bus = busFor('guiro');
   // CHA (long) fuerte 1.0 vs chi/ki (short) suave 0.45: contraste marcado fuerte/suave
-  if(playSample(long?'guiro_long':'guiro_short', t, long?1.0:0.45)) return;
+  if(playSample(long?'guiro_long':'guiro_short', t, long?1.0:0.45, bus)) return;
   const src = ctx.createBufferSource(); src.buffer=noiseBuf;
   const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3800; bp.Q.value=1.2;
   const g = envGain(t, long?0.18:0.09, 0.001, long?0.05:0.03);
-  src.connect(bp).connect(g).connect(master); src.start(t); src.stop(t+0.06);
+  src.connect(bp).connect(g).connect(bus); src.start(t); src.stop(t+0.06);
 }
 
 /* Bajo, piano, conteo: synth for now */
 function playBajo(t){
+  const bus = busFor('bajo');
   const o = ctx.createOscillator(); o.type='sine'; o.frequency.value=98;
   const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=400;
   const g = envGain(t,0.7,0.005,0.32);
-  o.connect(lp).connect(g).connect(master); o.start(t); o.stop(t+0.35);
+  o.connect(lp).connect(g).connect(bus); o.start(t); o.stop(t+0.35);
 }
 function playPiano(t){
+  const bus = busFor('piano');
   [261.6,329.6,392.0].forEach(f=>{
     const o = ctx.createOscillator(); o.type='triangle'; o.frequency.value=f;
     const g = envGain(t,0.22,0.002,0.22);
-    o.connect(g).connect(master); o.start(t); o.stop(t+0.24);
+    o.connect(g).connect(bus); o.start(t); o.stop(t+0.24);
   });
 }
 function playConteo(t, step){
   // Voz real: número = step/2 + 1 (step 0->uno ... step 14->ocho)
   const n = step/2 + 1;
-  if(playSample('conteo_'+n, t, 1.0)) return;
+  if(playSample('conteo_'+n, t, 1.0, busFor('conteo'))) return;
   // Fallback: clic sintetizado (acento en el 1 y el 5)
   playClick(t, step);
 }
 function playClick(t, step){
+  const bus = busFor('click');
   // Click sintetizado: oscilador square; el 1 y el 5 un poco más agudos como acento/ancla
   const accent = (step===0 || step===8);
   const o = ctx.createOscillator(); o.type='square'; o.frequency.value = accent?1300:950;
   const g = envGain(t, accent?0.4:0.22, 0.001, 0.03);
-  o.connect(g).connect(master); o.start(t); o.stop(t+0.04);
+  o.connect(g).connect(bus); o.start(t); o.stop(t+0.04);
 }
 
 /* ---- Sequencer ---- */

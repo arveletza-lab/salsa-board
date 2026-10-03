@@ -20,7 +20,9 @@
       <div class="ctrl-group">
         <span class="ctrl-label">Tempo</span>
         <div class="ctrl-row">
+          <button class="step-btn" id="bpmDown" aria-label="Bajar BPM">−</button>
           <input type="range" id="bpmSlider" min="120" max="230" value="160">
+          <button class="step-btn" id="bpmUp" aria-label="Subir BPM">+</button>
           <span class="bpm-val" id="bpmVal">160</span>
         </div>
       </div>
@@ -35,7 +37,11 @@
 
       <div class="ctrl-group">
         <span class="ctrl-label">Volumen</span>
-        <input type="range" id="volSlider" min="0" max="1" step="0.01" value="0.8">
+        <div class="ctrl-row">
+          <button class="step-btn" id="volDown" aria-label="Bajar volumen">−</button>
+          <input type="range" id="volSlider" min="0" max="1" step="0.01" value="0.8">
+          <button class="step-btn" id="volUp" aria-label="Subir volumen">+</button>
+        </div>
       </div>
     </div>
 
